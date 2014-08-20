@@ -1,4 +1,4 @@
 ascon_hardware
 ==============
 
-Hardware implementations of the famous CAESAR authenticated encryption design ASCON
+Hardware implementations of the authenticated encryption design ASCON
