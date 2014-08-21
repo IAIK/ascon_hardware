@@ -253,7 +253,7 @@ int crypto_aead_encrypt(  uint8_t *c, uint64_t *clen,
 
 \textsc{Ascon}-small-64bit uses a 64-bit data path that is able to either XOR, AND, NOT, or ROTATE one or two operands. Therefore the data-path is quite straightforward and consists of only two multiplexers, the computation unit, and some logic to update the register contents. Naturally, the data-path is kept busy by a state-machine that is interwoven with the external interface. This design also comes with an I/O buffer, otherwise data to decrypt would have to be written twice (write ciphertext, read plaintext, write ciphertext again). 
 
-\subsection{\textsc{Ascon}-super-small}
+\subsection{\textsc{Ascon}-xlow-area}
 
 TBD: Hannes Gro{\ss}
 
@@ -269,7 +269,7 @@ conditions: 0.9\,V power supply and a temperature of 125\celsius.
 \centering
 %\begin{tabular}{|l|r|r|r|} \hline
 \begin{tabular}{l@{\hskip 12pt}r@{\hskip 12pt}r@{\hskip 12pt}r} \toprule
-  Design & \textsc{Ascon}-fast & \textsc{Ascon}-small-64bit & \textsc{Ascon}-super-small \\
+  Design & \textsc{Ascon}-fast & \textsc{Ascon}-small-64bit & \textsc{Ascon}-xlow-area \\
   \midrule
   Area                             & 8,708\,GE            & 6,110\,GE               & 3,994\,GE                 \\
   Cycles per round                 & 1                    & 59                      & 512                       \\
