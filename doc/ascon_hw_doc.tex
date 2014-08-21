@@ -189,6 +189,7 @@ volatile CAESAR_INTERFACE interface = (volatile CAESAR_INTERFACE*) 0x40000000;
 int crypto_aead_encrypt(  uint8_t *c, uint64_t *clen,
   const uint8_t *m, uint64_t mlen,  const uint8_t *ad, uint64_t adlen,
   const uint8_t *nsec,  const uint8_t *npub,  const uint8_t *k) {
+    *clen = mlen + 16;
     interface->key[0] = CAST_B_I(k+0);
     interface->key[1] = CAST_B_I(k+4);
     interface->key[2] = CAST_B_I(k+8);
@@ -227,9 +228,23 @@ int crypto_aead_encrypt(  uint8_t *c, uint64_t *clen,
     SET_I_B(c, interface->tag[0]); c+=4;
     SET_I_B(c, interface->tag[1]); c+=4;
     SET_I_B(c, interface->tag[2]); c+=4;
-    SET_I_B(c, interface->tag[3]);
+    SET_I_B(c, interface->tag[3]); 
 }
 \end{lstlisting}
+
+\section{Hardware Designs}
+
+\subsection{Ascon-fast}
+
+Ascon-fast was designed for maximum throughput per given area. Ascon-fast performs a single round transformation in a single cycle. It comes with an I/O buffer such that it is possible to read/write the I/O buffer while the round transformations are performed. As the data can be read/written while the round transformations are active, the hardware is always fully utilized and no significant timing overhead for the interface is necessary. 
+
+\subsection{Ascon-small-64bit}
+
+Ascon-small-64bit uses a 64-bit data path that is able to either XOR, AND, NOT, or ROTATE one or two operands. Therefore the data-path is quite straightforward and consists of only two multiplexers, the computation unit, and some logic to update the register contents. Naturally, the data-path is kept busy by a state-machine that is interwoven with the external interface. This design also comes with an I/O buffer, otherwise data to decrypt would have to be written twice (write ciphertext, read plaintext, write ciphertext again). 
+
+\subsection{Ascon-super-small}
+
+TBD: Hannes Gro{\ss}
 
 \section{Results} \label{sec:results}
 
@@ -241,12 +256,12 @@ The hardware was synthesized using Cadence Encounter v08.10 and a UMC 90\,nm man
 \centering
 \begin{tabular}{|l|r|r|r|} \hline
 Design & Ascon-fast & Ascon-small-64bit & Ascon-super-small \\
-Area   &  &  &  \\
-Cycles per Round  & 1 &  &  \\
-Cycles per Round plus interface  & 1 &  &  \\
-Cycles per Byte & 0.75 &  &  \\
-Maximum frequency & TBD &  &  \\
-Maximum throughput  & TBD &  &  \\ \hline
+Area   & 8,708\,GE & 6,110\,GE &  \\
+Cycles per Round  & 1 & 59 &  \\
+Cycles per Block plus interface  & $1 \times 6 + 0 = 6$ & $59 \times 6 + 6 = 360$ &  \\
+Cycles per Byte & 0.75 & 45 &  \\
+Maximum frequency & 300\,MHz & 230\,MHz &  \\
+Maximum throughput  & 400\,MByte/sec & 5.1\,MByte/sec &  \\ \hline
 \end{tabular}
 \end{table}%
 
