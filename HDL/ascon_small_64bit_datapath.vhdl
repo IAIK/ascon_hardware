@@ -1,22 +1,28 @@
 -------------------------------------------------------------------------------
--- Title      : An area-optimized version of Ascon with a 64-bit datapath.
--- Project    : 
+-- Title      : An area-optimized version of Ascon with a 64-bit datapath
+-- Project    : Ascon
 -------------------------------------------------------------------------------
 -- File       : ascon_small_64bit_datapath.vhdl
 -- Author     : Erich Wenger  <erich.wenger@iaik.tugraz.at>
--- Company    : 
+-- Company    : Graz University of Technology
 -- Created    : 2014-05-19
--- Last update: 2014-05-20
--- Platform   : 
+-- Last update: 2014-05-21
+-- Platform   : ASIC design
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: In a 90nm UMC technology, this design is XXX GE large and
--- needs XXX cycles to encrypt a byte (assuming a large message).
--------------------------------------------------------------------------------
--- Copyright (c) 2014
--- This work is licensed under the Creative Commons
--- Attribution-NonCommercial-ShareAlike 4.0 International License.
--- To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-sa/4.0/.
+--   Copyright 2014 Graz University of Technology
+--
+--   Licensed under the Apache License, Version 2.0 (the "License");
+--   you may not use this file except in compliance with the License.
+--   You may obtain a copy of the License at
+--
+--       http://www.apache.org/licenses/LICENSE-2.0
+--
+--   Unless required by applicable law or agreed to in writing, software
+--   distributed under the License is distributed on an "AS IS" BASIS,
+--   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+--   See the License for the specific language governing permissions and
+--   limitations under the License.
 -------------------------------------------------------------------------------
 -- Revisions  :
 -- Date        Version  Author           Description
@@ -73,8 +79,8 @@ architecture structural of ascon is
   signal StateMachinexDP, StateMachinexDN : std_logic_vector(STATE_MACHINE_BITS-1 downto 0);
   signal RoundCounterxDP, RoundCounterxDN : std_logic_vector(ROUND_COUNTER_BITS-1 downto 0);
 
-  constant STATE_ROUND_OP : integer := 4;
-  constant STATE_AFTER_ROUND_OP : integer := STATE_ROUND_OP + 57;
+  constant STATE_ROUND_OP       : integer := 4;
+  constant STATE_AFTER_ROUND_OP : integer := STATE_ROUND_OP + 59;
 
   signal DP_OpASelxS      : std_logic_vector(3 downto 0);
   signal DP_OpBSelxS      : std_logic_vector(3 downto 0);
@@ -83,70 +89,70 @@ architecture structural of ascon is
 
   signal DP_ALU_ResultxD : std_logic_vector(STATE_WORD_SIZE-1 downto 0);
 
-  constant DP_OPERAND_SEL_STATE0      : std_logic_vector := "0000";
-  constant DP_OPERAND_SEL_STATE1      : std_logic_vector := "0001";
-  constant DP_OPERAND_SEL_STATE2      : std_logic_vector := "0010";
-  constant DP_OPERAND_SEL_STATE3      : std_logic_vector := "0011";
-  constant DP_OPERAND_SEL_STATE4      : std_logic_vector := "0100";
-  constant DP_OPERAND_SEL_KEY0        : std_logic_vector := "1000";
-  constant DP_OPERAND_SEL_KEY1        : std_logic_vector := "1001";
-  constant DP_OPERAND_SEL_CONST_INIT  : std_logic_vector := "1010";
-  constant DP_OPERAND_SEL_CONST_ROUND : std_logic_vector := "1011";
-  constant DP_OPERAND_SEL_CONST_ONE   : std_logic_vector := "1111";
-  constant DP_OPERAND_SEL_IODATA      : std_logic_vector := "1100";
-  constant DP_OPERAND_SEL_TEMP0       : std_logic_vector := "0110";
-  constant DP_OPERAND_SEL_TEMP1       : std_logic_vector := "0111";
+  constant DP_OPERAND_SEL_ZERO        : std_logic_vector(3 downto 0) := "0000";
+  constant DP_OPERAND_SEL_STATE0      : std_logic_vector(3 downto 0) := "1000";
+  constant DP_OPERAND_SEL_STATE1      : std_logic_vector(3 downto 0) := "1001";
+  constant DP_OPERAND_SEL_STATE2      : std_logic_vector(3 downto 0) := "1010";
+  constant DP_OPERAND_SEL_STATE3      : std_logic_vector(3 downto 0) := "1011";
+  constant DP_OPERAND_SEL_STATE4      : std_logic_vector(3 downto 0) := "1100";
+  constant DP_OPERAND_SEL_KEY0        : std_logic_vector(3 downto 0) := "1101";
+  constant DP_OPERAND_SEL_KEY1        : std_logic_vector(3 downto 0) := "1110";
+  constant DP_OPERAND_SEL_CONST_ONE   : std_logic_vector(3 downto 0) := "0001";
+  constant DP_OPERAND_SEL_CONST_INIT  : std_logic_vector(3 downto 0) := "0010";
+  constant DP_OPERAND_SEL_CONST_ROUND : std_logic_vector(3 downto 0) := "0011";
+  constant DP_OPERAND_SEL_IODATA      : std_logic_vector(3 downto 0) := "0100";
+  constant DP_OPERAND_SEL_TEMP0       : std_logic_vector(3 downto 0) := "0110";
+  constant DP_OPERAND_SEL_TEMP1       : std_logic_vector(3 downto 0) := "0111";
 
-  constant DP_OPERATION_XOR      : std_logic_vector := "0000";
-  constant DP_OPERATION_NOT_AND  : std_logic_vector := "0001";
-  constant DP_OPERATION_NOT      : std_logic_vector := "0010";
-  constant DP_OPERATION_BUS_LOW  : std_logic_vector := "0100";
-  constant DP_OPERATION_BUS_HIGH : std_logic_vector := "0101";
-  constant DP_OPERATION_ROT1     : std_logic_vector := "1001";
-  constant DP_OPERATION_ROT2     : std_logic_vector := "1010";
-  constant DP_OPERATION_ROT4     : std_logic_vector := "1011";
-  constant DP_OPERATION_ROT8     : std_logic_vector := "1100";
-  constant DP_OPERATION_ROT16    : std_logic_vector := "1101";
-  constant DP_OPERATION_ROT32    : std_logic_vector := "1110";
+  constant DP_OPERATION_XOR      : std_logic_vector(3 downto 0) := "0000";
+  constant DP_OPERATION_NOT_AND  : std_logic_vector(3 downto 0) := "0001";
+  constant DP_OPERATION_NOT      : std_logic_vector(3 downto 0) := "0010";
+  constant DP_OPERATION_BUS_LOW  : std_logic_vector(3 downto 0) := "0100";
+  constant DP_OPERATION_BUS_HIGH : std_logic_vector(3 downto 0) := "0101";
+  constant DP_OPERATION_ROT1     : std_logic_vector(3 downto 0) := "1001";
+  constant DP_OPERATION_ROT2     : std_logic_vector(3 downto 0) := "1010";
+  constant DP_OPERATION_ROT4     : std_logic_vector(3 downto 0) := "1011";
+  constant DP_OPERATION_ROT8     : std_logic_vector(3 downto 0) := "1100";
+  constant DP_OPERATION_ROT16    : std_logic_vector(3 downto 0) := "1101";
+  constant DP_OPERATION_ROT32    : std_logic_vector(3 downto 0) := "1110";
 
-  constant DP_DESTINATION_NONE     : std_logic_vector := "0000";
-  constant DP_DESTINATION_STATE0   : std_logic_vector := "1000";
-  constant DP_DESTINATION_STATE1   : std_logic_vector := "1001";
-  constant DP_DESTINATION_STATE2   : std_logic_vector := "1010";
-  constant DP_DESTINATION_STATE3   : std_logic_vector := "1011";
-  constant DP_DESTINATION_STATE4   : std_logic_vector := "1100";
-  constant DP_DESTINATION_KEY_LOW  : std_logic_vector := "0100";
-  constant DP_DESTINATION_KEY_HIGH : std_logic_vector := "0101";
-  constant DP_DESTINATION_IODATA   : std_logic_vector := "0110";
-  constant DP_DESTINATION_TEMP0    : std_logic_vector := "1110";
-  constant DP_DESTINATION_TEMP1    : std_logic_vector := "1111";
+  constant DP_DESTINATION_NONE   : std_logic_vector(3 downto 0) := "0000";
+  constant DP_DESTINATION_STATE0 : std_logic_vector(3 downto 0) := "1000";
+  constant DP_DESTINATION_STATE1 : std_logic_vector(3 downto 0) := "1001";
+  constant DP_DESTINATION_STATE2 : std_logic_vector(3 downto 0) := "1010";
+  constant DP_DESTINATION_STATE3 : std_logic_vector(3 downto 0) := "1011";
+  constant DP_DESTINATION_STATE4 : std_logic_vector(3 downto 0) := "1100";
+  constant DP_DESTINATION_IODATA : std_logic_vector(3 downto 0) := "0100";
+  constant DP_DESTINATION_TEMP0  : std_logic_vector(3 downto 0) := "0110";
+  constant DP_DESTINATION_TEMP1  : std_logic_vector(3 downto 0) := "0111";
 
-  signal CP_ReadyxS                   : std_logic;
+  signal CP_FinishedxS                : std_logic;
+  signal CP_IdlexS                    : std_logic;
   signal CP_CommandDirectxS           : std_logic_vector(2 downto 0);
   signal CP_CommandxSN, CP_CommandxSP : std_logic_vector(4 downto 0);
 
-  constant CP_DIRECT_NONE       : std_logic_vector := "000";
-  constant CP_DIRECT_WR_IODATA0 : std_logic_vector := "010";
-  constant CP_DIRECT_WR_IODATA1 : std_logic_vector := "011";
-  constant CP_DIRECT_WR_NONCE0  : std_logic_vector := "100";
-  constant CP_DIRECT_WR_NONCE1  : std_logic_vector := "101";
-  constant CP_DIRECT_WR_NONCE2  : std_logic_vector := "110";
-  constant CP_DIRECT_WR_NONCE3  : std_logic_vector := "111";
+  constant CP_DIRECT_NONE       : std_logic_vector(2 downto 0) := "000";
+  constant CP_DIRECT_WR_IODATA0 : std_logic_vector(2 downto 0) := "010";
+  constant CP_DIRECT_WR_IODATA1 : std_logic_vector(2 downto 0) := "011";
+  constant CP_DIRECT_WR_NONCE0  : std_logic_vector(2 downto 0) := "100";
+  constant CP_DIRECT_WR_NONCE1  : std_logic_vector(2 downto 0) := "101";
+  constant CP_DIRECT_WR_NONCE2  : std_logic_vector(2 downto 0) := "110";
+  constant CP_DIRECT_WR_NONCE3  : std_logic_vector(2 downto 0) := "111";
 
-  constant CP_CMD_NONE            : std_logic_vector := "00000";
-  constant CP_CMD_INIT            : std_logic_vector := "00001";
-  constant CP_CMD_ASSOCIATE       : std_logic_vector := "01000";
-  constant CP_CMD_ENCRYPT         : std_logic_vector := "01001";
-  constant CP_CMD_DECRYPT         : std_logic_vector := "01010";
-  constant CP_CMD_FINALIZE_ASSOCIATE : std_logic_vector := "01100";
-  constant CP_CMD_FINAL_ENCRYPT   : std_logic_vector := "01101";
-  constant CP_CMD_FINAL_DECRYPT   : std_logic_vector := "01110";
-  constant CP_CMD_RD_IODATA0      : std_logic_vector := "10110";
-  constant CP_CMD_RD_IODATA1      : std_logic_vector := "10111";
-  constant CP_CMD_RD_TAG0         : std_logic_vector := "11000";
-  constant CP_CMD_RD_TAG1         : std_logic_vector := "11001";
-  constant CP_CMD_RD_TAG2         : std_logic_vector := "11010";
-  constant CP_CMD_RD_TAG3         : std_logic_vector := "11011";
+  constant CP_CMD_NONE               : std_logic_vector(4 downto 0) := "00000";
+  constant CP_CMD_INIT               : std_logic_vector(4 downto 0) := "00001";
+  constant CP_CMD_ASSOCIATE          : std_logic_vector(4 downto 0) := "01000";
+  constant CP_CMD_ENCRYPT            : std_logic_vector(4 downto 0) := "01001";
+  constant CP_CMD_DECRYPT            : std_logic_vector(4 downto 0) := "01010";
+  constant CP_CMD_FINALIZE_ASSOCIATE : std_logic_vector(4 downto 0) := "01100";
+  constant CP_CMD_FINAL_ENCRYPT      : std_logic_vector(4 downto 0) := "01101";
+  constant CP_CMD_FINAL_DECRYPT      : std_logic_vector(4 downto 0) := "01110";
+  constant CP_CMD_RD_IODATA0         : std_logic_vector(4 downto 0) := "10110";
+  constant CP_CMD_RD_IODATA1         : std_logic_vector(4 downto 0) := "10111";
+  constant CP_CMD_RD_TAG0            : std_logic_vector(4 downto 0) := "11000";
+  constant CP_CMD_RD_TAG1            : std_logic_vector(4 downto 0) := "11001";
+  constant CP_CMD_RD_TAG2            : std_logic_vector(4 downto 0) := "11010";
+  constant CP_CMD_RD_TAG3            : std_logic_vector(4 downto 0) := "11011";
 
   function ZEROS (
     constant WIDTH : natural)
@@ -187,6 +193,7 @@ begin  -- architecture structural
       State4xDP       <= (others => '0');
       StateMachinexDP <= (others => '0');
       RoundCounterxDP <= (others => '0');
+      CP_CommandxSP   <= (others => '0');
       Temp0xDP        <= (others => '0');
       Temp1xDP        <= (others => '0');
     elsif ClkxCI'event and ClkxCI = '1' then  -- rising clock edge
@@ -199,16 +206,18 @@ begin  -- architecture structural
       State4xDP       <= State4xDN;
       StateMachinexDP <= StateMachinexDN;
       RoundCounterxDP <= RoundCounterxDN;
+      CP_CommandxSP   <= CP_CommandxSN;
       Temp0xDP        <= Temp0xDN;
-      Temp1xDP        <= Temp0xDN;
+      Temp1xDP        <= Temp1xDN;
     end if;
   end process RegisterProc;
 
 
   -- purpose: Glue the internal registers with the bus
   -- type   : combinational
-  DataBusLogicProc : process (AddressxDI, CP_CommandxSP, CP_ReadyxS, CSxSI,
-                              DP_ALU_ResultxD, DataWritexDI, KeyxDP, WExSI) is
+  DataBusLogicProc : process (AddressxDI, CP_CommandxSP, CP_FinishedxS,
+                              CP_IdlexS, CSxSI, DP_ALU_ResultxD, DataWritexDI,
+                              KeyxDP, WExSI) is
     variable AddressxDV : integer;
     variable index      : integer;
   begin  -- process DataBusLogicProc
@@ -219,8 +228,8 @@ begin  -- architecture structural
     index       := 0;
     DataReadxDO <= (others => '0');
 
-    if CP_ReadyxS = '1' then
-      CP_CommandxSN = CP_CMD_NONE;
+    if CP_FinishedxS = '1' then
+      CP_CommandxSN <= CP_CMD_NONE;
     end if;
 
     CP_CommandDirectxS <= CP_DIRECT_NONE;
@@ -282,7 +291,7 @@ begin  -- architecture structural
         elsif AddressxDV = 1 then
           -- status register
           -- returns 1 if busy
-          DataReadxDO(0) <= not CP_ReadyxS;
+          DataReadxDO(0) <= not CP_IdlexS;
         elsif (AddressxDV >= 12) and (AddressxDV < 20) then
           if AddressxDV = 12 then
             -- read the de/encrypted data and associated data
@@ -318,9 +327,10 @@ begin  -- architecture structural
     StateMachinexDV := to_integer(unsigned(StateMachinexDP));
     RoundCounterxDV := to_integer(unsigned(RoundCounterxDP));
 
-    CP_ReadyxS       <= '0';
-    DP_OpASelxS      <= DP_OPERAND_SEL_STATE0;
-    DP_OpBSelxS      <= DP_OPERAND_SEL_STATE0;
+    CP_IdlexS        <= '0';
+    CP_FinishedxS    <= '0';
+    DP_OpASelxS      <= DP_OPERAND_SEL_ZERO;
+    DP_OpBSelxS      <= DP_OPERAND_SEL_ZERO;
     DP_OperationxS   <= DP_OPERATION_XOR;
     DP_DestinationxS <= DP_DESTINATION_NONE;
 
@@ -331,7 +341,7 @@ begin  -- architecture structural
     end if;
 
     if CP_CommandxSP = CP_CMD_NONE then
-      CP_ReadyxS <= '1';
+      CP_IdlexS <= '1';
 
       if CP_CommandDirectxS = CP_DIRECT_WR_NONCE0 then
         DP_OpASelxS      <= DP_OPERAND_SEL_STATE4;
@@ -358,26 +368,38 @@ begin  -- architecture structural
         DP_OperationxS   <= DP_OPERATION_BUS_HIGH;
         DP_DestinationxS <= DP_DESTINATION_IODATA;
       end if;
-    ---------------------------------------------------------------------------
+      ---------------------------------------------------------------------------
     elsif CP_CommandxSP = CP_CMD_RD_IODATA0 then
       DP_OpASelxS    <= DP_OPERAND_SEL_IODATA;
       DP_OperationxS <= DP_OPERATION_XOR;
+      StateMachinexDN <= (others => '0');
+      CP_FinishedxS <= '1';
     elsif CP_CommandxSP = CP_CMD_RD_IODATA1 then
       DP_OpASelxS    <= DP_OPERAND_SEL_IODATA;
       DP_OperationxS <= DP_OPERATION_ROT32;
+      StateMachinexDN <= (others => '0');
+      CP_FinishedxS <= '1';
     elsif CP_CommandxSP = CP_CMD_RD_TAG0 then
       DP_OpASelxS    <= DP_OPERAND_SEL_STATE4;
       DP_OperationxS <= DP_OPERATION_XOR;
+      StateMachinexDN <= (others => '0');
+      CP_FinishedxS <= '1';
     elsif CP_CommandxSP = CP_CMD_RD_TAG1 then
       DP_OpASelxS    <= DP_OPERAND_SEL_STATE4;
       DP_OperationxS <= DP_OPERATION_ROT32;
+      StateMachinexDN <= (others => '0');
+      CP_FinishedxS <= '1';
     elsif CP_CommandxSP = CP_CMD_RD_TAG2 then
       DP_OpASelxS    <= DP_OPERAND_SEL_STATE3;
       DP_OperationxS <= DP_OPERATION_XOR;
-    elsif CP_CommandxSP = CP_CMD_RD_TAG2 then
+      StateMachinexDN <= (others => '0');
+      CP_FinishedxS <= '1';
+    elsif CP_CommandxSP = CP_CMD_RD_TAG3 then
       DP_OpASelxS    <= DP_OPERAND_SEL_STATE3;
       DP_OperationxS <= DP_OPERATION_ROT32;
-    ---------------------------------------------------------------------------
+      StateMachinexDN <= (others => '0');
+      CP_FinishedxS <= '1';
+      ---------------------------------------------------------------------------
     elsif CP_CommandxSP = CP_CMD_INIT then
       if (StateMachinexDV = 0) then
         DP_OpBSelxS      <= DP_OPERAND_SEL_CONST_INIT;
@@ -391,7 +413,7 @@ begin  -- architecture structural
         DP_OpASelxS      <= DP_OPERAND_SEL_KEY0;
         DP_OperationxS   <= DP_OPERATION_XOR;
         DP_DestinationxS <= DP_DESTINATION_STATE2;
-        StateMachinexDN <= std_logic_vector(to_unsigned(STATE_ROUND_OP, STATE_MACHINE_BITS));
+        StateMachinexDN  <= std_logic_vector(to_unsigned(STATE_ROUND_OP, STATE_MACHINE_BITS));
       elsif (StateMachinexDV = STATE_AFTER_ROUND_OP + 0) then
         DP_OpASelxS      <= DP_OPERAND_SEL_STATE3;
         DP_OpBSelxS      <= DP_OPERAND_SEL_KEY1;
@@ -402,15 +424,17 @@ begin  -- architecture structural
         DP_OpBSelxS      <= DP_OPERAND_SEL_KEY0;
         DP_OperationxS   <= DP_OPERATION_XOR;
         DP_DestinationxS <= DP_DESTINATION_STATE4;
-        CP_ReadyxS      <= '1';
-        StateMachinexDN <= (others => '0');
+        CP_FinishedxS       <= '1';
+        StateMachinexDN  <= (others => '0');
       end if;
     elsif (CP_CommandxSP = CP_CMD_ASSOCIATE) then
-      DP_OpASelxS      <= DP_OPERAND_SEL_STATE0;
-      DP_OpBSelxS      <= DP_OPERAND_SEL_IODATA;
-      DP_OperationxS   <= DP_OPERATION_XOR;
-      DP_DestinationxS <= DP_DESTINATION_STATE0;
-      StateMachinexDN <= std_logic_vector(to_unsigned(STATE_ROUND_OP, STATE_MACHINE_BITS));
+      if (StateMachinexDV = 0) then
+        DP_OpASelxS      <= DP_OPERAND_SEL_STATE0;
+        DP_OpBSelxS      <= DP_OPERAND_SEL_IODATA;
+        DP_OperationxS   <= DP_OPERATION_XOR;
+        DP_DestinationxS <= DP_DESTINATION_STATE0;
+        StateMachinexDN  <= std_logic_vector(to_unsigned(STATE_ROUND_OP, STATE_MACHINE_BITS));
+      end if;
     elsif (CP_CommandxSP = CP_CMD_ENCRYPT) then
       if (StateMachinexDV = 0) then
         DP_OpASelxS      <= DP_OPERAND_SEL_STATE0;
@@ -421,15 +445,17 @@ begin  -- architecture structural
         DP_OpASelxS      <= DP_OPERAND_SEL_STATE0;
         DP_OperationxS   <= DP_OPERATION_XOR;
         DP_DestinationxS <= DP_DESTINATION_IODATA;
-        StateMachinexDN <= std_logic_vector(to_unsigned(STATE_ROUND_OP, STATE_MACHINE_BITS));
+        StateMachinexDN  <= std_logic_vector(to_unsigned(STATE_ROUND_OP, STATE_MACHINE_BITS));
       end if;
     elsif (CP_CommandxSP = CP_CMD_FINALIZE_ASSOCIATE) then
-      DP_OpASelxS      <= DP_OPERAND_SEL_STATE4;
-      DP_OpBSelxS      <= DP_OPERAND_SEL_CONST_ONE;
-      DP_OperationxS   <= DP_OPERATION_XOR;
-      DP_DestinationxS <= DP_DESTINATION_STATE4;
-      CP_ReadyxS      <= '1';
-      StateMachinexDN <= (others => '0');
+      if (StateMachinexDV = 0) then
+        DP_OpASelxS      <= DP_OPERAND_SEL_STATE4;
+        DP_OpBSelxS      <= DP_OPERAND_SEL_CONST_ONE;
+        DP_OperationxS   <= DP_OPERATION_XOR;
+        DP_DestinationxS <= DP_DESTINATION_STATE4;
+        CP_FinishedxS       <= '1';
+        StateMachinexDN  <= (others => '0');
+      end if;
     elsif (CP_CommandxSP = CP_CMD_FINAL_ENCRYPT) then
       if (StateMachinexDV = 0) then
         DP_OpASelxS      <= DP_OPERAND_SEL_STATE0;
@@ -450,7 +476,7 @@ begin  -- architecture structural
         DP_OpBSelxS      <= DP_OPERAND_SEL_KEY0;
         DP_OperationxS   <= DP_OPERATION_XOR;
         DP_DestinationxS <= DP_DESTINATION_STATE2;
-        StateMachinexDN <= std_logic_vector(to_unsigned(STATE_ROUND_OP, STATE_MACHINE_BITS));
+        StateMachinexDN  <= std_logic_vector(to_unsigned(STATE_ROUND_OP, STATE_MACHINE_BITS));
       elsif (StateMachinexDV = STATE_AFTER_ROUND_OP + 0) then
         DP_OpASelxS      <= DP_OPERAND_SEL_STATE3;
         DP_OpBSelxS      <= DP_OPERAND_SEL_KEY1;
@@ -461,8 +487,8 @@ begin  -- architecture structural
         DP_OpBSelxS      <= DP_OPERAND_SEL_KEY0;
         DP_OperationxS   <= DP_OPERATION_XOR;
         DP_DestinationxS <= DP_DESTINATION_STATE4;
-        CP_ReadyxS      <= '1';
-        StateMachinexDN <= (others => '0');
+        CP_FinishedxS       <= '1';
+        StateMachinexDN  <= (others => '0');
       end if;
     elsif (CP_CommandxSP = CP_CMD_DECRYPT) then
       if (StateMachinexDV = 0) then
@@ -475,7 +501,7 @@ begin  -- architecture structural
         DP_OpBSelxS      <= DP_OPERAND_SEL_IODATA;
         DP_OperationxS   <= DP_OPERATION_XOR;
         DP_DestinationxS <= DP_DESTINATION_STATE0;
-        StateMachinexDN <= std_logic_vector(to_unsigned(STATE_ROUND_OP, STATE_MACHINE_BITS));
+        StateMachinexDN  <= std_logic_vector(to_unsigned(STATE_ROUND_OP, STATE_MACHINE_BITS));
       end if;
     elsif (CP_CommandxSP = CP_CMD_FINAL_DECRYPT) then
       if (StateMachinexDV = 0) then
@@ -488,7 +514,6 @@ begin  -- architecture structural
         DP_OpBSelxS      <= DP_OPERAND_SEL_IODATA;
         DP_OperationxS   <= DP_OPERATION_XOR;
         DP_DestinationxS <= DP_DESTINATION_STATE0;
-        StateMachinexDN <= std_logic_vector(to_unsigned(STATE_ROUND_OP, STATE_MACHINE_BITS));
       elsif (StateMachinexDV = 2) then
         DP_OpASelxS      <= DP_OPERAND_SEL_STATE1;
         DP_OpBSelxS      <= DP_OPERAND_SEL_KEY1;
@@ -499,7 +524,7 @@ begin  -- architecture structural
         DP_OpBSelxS      <= DP_OPERAND_SEL_KEY0;
         DP_OperationxS   <= DP_OPERATION_XOR;
         DP_DestinationxS <= DP_DESTINATION_STATE2;
-        StateMachinexDN <= std_logic_vector(to_unsigned(STATE_ROUND_OP, STATE_MACHINE_BITS));
+        StateMachinexDN  <= std_logic_vector(to_unsigned(STATE_ROUND_OP, STATE_MACHINE_BITS));
       elsif (StateMachinexDV = STATE_AFTER_ROUND_OP + 0) then
         DP_OpASelxS      <= DP_OPERAND_SEL_STATE3;
         DP_OpBSelxS      <= DP_OPERAND_SEL_KEY1;
@@ -510,8 +535,8 @@ begin  -- architecture structural
         DP_OpBSelxS      <= DP_OPERAND_SEL_KEY0;
         DP_OperationxS   <= DP_OPERATION_XOR;
         DP_DestinationxS <= DP_DESTINATION_STATE4;
-        CP_ReadyxS      <= '1';
-        StateMachinexDN <= (others => '0');
+        CP_FinishedxS       <= '1';
+        StateMachinexDN  <= (others => '0');
       end if;
     end if;
 
@@ -623,188 +648,188 @@ begin  -- architecture structural
         DP_OpBSelxS      <= DP_OPERAND_SEL_TEMP0;
         DP_OperationxS   <= DP_OPERATION_XOR;
         DP_DestinationxS <= DP_DESTINATION_TEMP0;
-      elsif (StateMachinexDV = STATE_ROUND_OP + 18) then
+      elsif (StateMachinexDV = STATE_ROUND_OP + 20) then
         DP_OpASelxS      <= DP_OPERAND_SEL_STATE2;
         DP_OpBSelxS      <= DP_OPERAND_SEL_STATE3;
         DP_OperationxS   <= DP_OPERATION_NOT_AND;
         DP_DestinationxS <= DP_DESTINATION_STATE2;
-      elsif (StateMachinexDV = STATE_ROUND_OP + 19) then
+      elsif (StateMachinexDV = STATE_ROUND_OP + 21) then
         DP_OpASelxS      <= DP_OPERAND_SEL_STATE1;
         DP_OpBSelxS      <= DP_OPERAND_SEL_STATE2;
         DP_OperationxS   <= DP_OPERATION_XOR;
         DP_DestinationxS <= DP_DESTINATION_STATE1;
-      elsif (StateMachinexDV = STATE_ROUND_OP + 20) then
+      elsif (StateMachinexDV = STATE_ROUND_OP + 22) then
         DP_OpASelxS      <= DP_OPERAND_SEL_STATE0;
         DP_OpBSelxS      <= DP_OPERAND_SEL_STATE1;
         DP_OperationxS   <= DP_OPERATION_XOR;
         DP_DestinationxS <= DP_DESTINATION_STATE1;
-      elsif (StateMachinexDV = STATE_ROUND_OP + 21) then
+      elsif (StateMachinexDV = STATE_ROUND_OP + 23) then
         DP_OpASelxS      <= DP_OPERAND_SEL_STATE0;
         DP_OpBSelxS      <= DP_OPERAND_SEL_STATE4;
         DP_OperationxS   <= DP_OPERATION_XOR;
         DP_DestinationxS <= DP_DESTINATION_STATE0;
-      elsif (StateMachinexDV = STATE_ROUND_OP + 22) then
+      elsif (StateMachinexDV = STATE_ROUND_OP + 24) then
         DP_OpASelxS      <= DP_OPERAND_SEL_TEMP0;
         DP_OpBSelxS      <= DP_OPERAND_SEL_TEMP1;
         DP_OperationxS   <= DP_OPERATION_XOR;
         DP_DestinationxS <= DP_DESTINATION_STATE3;
-      elsif (StateMachinexDV = STATE_ROUND_OP + 23) then
+      elsif (StateMachinexDV = STATE_ROUND_OP + 25) then
         DP_OpASelxS      <= DP_OPERAND_SEL_TEMP0;
         DP_OperationxS   <= DP_OPERATION_NOT;
         DP_DestinationxS <= DP_DESTINATION_STATE2;
-      elsif (StateMachinexDV = STATE_ROUND_OP + 24) then
+      elsif (StateMachinexDV = STATE_ROUND_OP + 26) then
         -- linear layer (State 0)
         DP_OpASelxS      <= DP_OPERAND_SEL_STATE0;
         DP_OperationxS   <= DP_OPERATION_ROT16;
         DP_DestinationxS <= DP_DESTINATION_TEMP0;
-      elsif (StateMachinexDV = STATE_ROUND_OP + 25) then
+      elsif (StateMachinexDV = STATE_ROUND_OP + 27) then
         DP_OpASelxS      <= DP_OPERAND_SEL_TEMP0;
         DP_OperationxS   <= DP_OPERATION_ROT8;
         DP_DestinationxS <= DP_DESTINATION_TEMP1;
-      elsif (StateMachinexDV = STATE_ROUND_OP + 26) then
+      elsif (StateMachinexDV = STATE_ROUND_OP + 28) then
         DP_OpASelxS      <= DP_OPERAND_SEL_TEMP1;
         DP_OperationxS   <= DP_OPERATION_ROT4;
         DP_DestinationxS <= DP_DESTINATION_TEMP1;
-      elsif (StateMachinexDV = STATE_ROUND_OP + 27) then
+      elsif (StateMachinexDV = STATE_ROUND_OP + 29) then
         DP_OpASelxS      <= DP_OPERAND_SEL_TEMP0;
         DP_OperationxS   <= DP_OPERATION_ROT2;
         DP_DestinationxS <= DP_DESTINATION_TEMP0;
-      elsif (StateMachinexDV = STATE_ROUND_OP + 28) then
+      elsif (StateMachinexDV = STATE_ROUND_OP + 30) then
         DP_OpASelxS      <= DP_OPERAND_SEL_TEMP0;
         DP_OperationxS   <= DP_OPERATION_ROT1;
         DP_DestinationxS <= DP_DESTINATION_TEMP0;
-      elsif (StateMachinexDV = STATE_ROUND_OP + 29) then
+      elsif (StateMachinexDV = STATE_ROUND_OP + 31) then
         DP_OpASelxS      <= DP_OPERAND_SEL_STATE0;
         DP_OpBSelxS      <= DP_OPERAND_SEL_TEMP0;
         DP_OperationxS   <= DP_OPERATION_XOR;
         DP_DestinationxS <= DP_DESTINATION_STATE0;
-      elsif (StateMachinexDV = STATE_ROUND_OP + 30) then
+      elsif (StateMachinexDV = STATE_ROUND_OP + 32) then
         DP_OpASelxS      <= DP_OPERAND_SEL_STATE0;
         DP_OpBSelxS      <= DP_OPERAND_SEL_TEMP1;
         DP_OperationxS   <= DP_OPERATION_XOR;
         DP_DestinationxS <= DP_DESTINATION_STATE0;
-      elsif (StateMachinexDV = STATE_ROUND_OP + 31) then
+      elsif (StateMachinexDV = STATE_ROUND_OP + 33) then
         -- linear layer (State 1)
         DP_OpASelxS      <= DP_OPERAND_SEL_STATE1;
         DP_OperationxS   <= DP_OPERATION_ROT32;
         DP_DestinationxS <= DP_DESTINATION_TEMP0;
-      elsif (StateMachinexDV = STATE_ROUND_OP + 32) then
+      elsif (StateMachinexDV = STATE_ROUND_OP + 34) then
         DP_OpASelxS      <= DP_OPERAND_SEL_TEMP0;
         DP_OperationxS   <= DP_OPERATION_ROT1;
         DP_DestinationxS <= DP_DESTINATION_TEMP0;
-      elsif (StateMachinexDV = STATE_ROUND_OP + 33) then
+      elsif (StateMachinexDV = STATE_ROUND_OP + 35) then
         DP_OpASelxS      <= DP_OPERAND_SEL_TEMP0;
         DP_OperationxS   <= DP_OPERATION_ROT4;
         DP_DestinationxS <= DP_DESTINATION_TEMP0;
-      elsif (StateMachinexDV = STATE_ROUND_OP + 34) then
+      elsif (StateMachinexDV = STATE_ROUND_OP + 36) then
         DP_OpASelxS      <= DP_OPERAND_SEL_TEMP0;
         DP_OperationxS   <= DP_OPERATION_ROT16;
         DP_DestinationxS <= DP_DESTINATION_TEMP1;
-      elsif (StateMachinexDV = STATE_ROUND_OP + 35) then
+      elsif (StateMachinexDV = STATE_ROUND_OP + 37) then
         DP_OpASelxS      <= DP_OPERAND_SEL_TEMP1;
         DP_OperationxS   <= DP_OPERATION_ROT8;
         DP_DestinationxS <= DP_DESTINATION_TEMP1;
-      elsif (StateMachinexDV = STATE_ROUND_OP + 36) then
+      elsif (StateMachinexDV = STATE_ROUND_OP + 38) then
         DP_OpASelxS      <= DP_OPERAND_SEL_TEMP0;
         DP_OperationxS   <= DP_OPERATION_ROT2;
         DP_DestinationxS <= DP_DESTINATION_TEMP0;
-      elsif (StateMachinexDV = STATE_ROUND_OP + 37) then
+      elsif (StateMachinexDV = STATE_ROUND_OP + 39) then
         DP_OpASelxS      <= DP_OPERAND_SEL_STATE1;
         DP_OpBSelxS      <= DP_OPERAND_SEL_TEMP0;
         DP_OperationxS   <= DP_OPERATION_XOR;
         DP_DestinationxS <= DP_DESTINATION_STATE1;
-      elsif (StateMachinexDV = STATE_ROUND_OP + 38) then
+      elsif (StateMachinexDV = STATE_ROUND_OP + 40) then
         DP_OpASelxS      <= DP_OPERAND_SEL_STATE1;
         DP_OpBSelxS      <= DP_OPERAND_SEL_TEMP1;
         DP_OperationxS   <= DP_OPERATION_XOR;
         DP_DestinationxS <= DP_DESTINATION_STATE1;
-      elsif (StateMachinexDV = STATE_ROUND_OP + 39) then
+      elsif (StateMachinexDV = STATE_ROUND_OP + 41) then
         -- linear layer (State 2)
         DP_OpASelxS      <= DP_OPERAND_SEL_STATE2;
         DP_OperationxS   <= DP_OPERATION_ROT1;
         DP_DestinationxS <= DP_DESTINATION_TEMP0;
-      elsif (StateMachinexDV = STATE_ROUND_OP + 40) then
+      elsif (StateMachinexDV = STATE_ROUND_OP + 42) then
         DP_OpASelxS      <= DP_OPERAND_SEL_STATE2;
         DP_OperationxS   <= DP_OPERATION_ROT2;
         DP_DestinationxS <= DP_DESTINATION_TEMP1;
-      elsif (StateMachinexDV = STATE_ROUND_OP + 41) then
+      elsif (StateMachinexDV = STATE_ROUND_OP + 43) then
         DP_OpASelxS      <= DP_OPERAND_SEL_TEMP1;
         DP_OperationxS   <= DP_OPERATION_ROT4;
         DP_DestinationxS <= DP_DESTINATION_TEMP1;
-      elsif (StateMachinexDV = STATE_ROUND_OP + 42) then
+      elsif (StateMachinexDV = STATE_ROUND_OP + 44) then
         DP_OpASelxS      <= DP_OPERAND_SEL_STATE2;
         DP_OpBSelxS      <= DP_OPERAND_SEL_TEMP0;
         DP_OperationxS   <= DP_OPERATION_XOR;
         DP_DestinationxS <= DP_DESTINATION_STATE2;
-      elsif (StateMachinexDV = STATE_ROUND_OP + 43) then
+      elsif (StateMachinexDV = STATE_ROUND_OP + 45) then
         DP_OpASelxS      <= DP_OPERAND_SEL_STATE2;
         DP_OpBSelxS      <= DP_OPERAND_SEL_TEMP1;
         DP_OperationxS   <= DP_OPERATION_XOR;
         DP_DestinationxS <= DP_DESTINATION_STATE2;
-      elsif (StateMachinexDV = STATE_ROUND_OP + 44) then
+      elsif (StateMachinexDV = STATE_ROUND_OP + 46) then
         -- linear layer (State 3)
         DP_OpASelxS      <= DP_OPERAND_SEL_STATE3;
         DP_OperationxS   <= DP_OPERATION_ROT2;
         DP_DestinationxS <= DP_DESTINATION_TEMP0;
-      elsif (StateMachinexDV = STATE_ROUND_OP + 45) then
+      elsif (StateMachinexDV = STATE_ROUND_OP + 47) then
         DP_OpASelxS      <= DP_OPERAND_SEL_TEMP0;
         DP_OperationxS   <= DP_OPERATION_ROT8;
         DP_DestinationxS <= DP_DESTINATION_TEMP0;
-      elsif (StateMachinexDV = STATE_ROUND_OP + 46) then
+      elsif (StateMachinexDV = STATE_ROUND_OP + 48) then
         DP_OpASelxS      <= DP_OPERAND_SEL_STATE3;
         DP_OperationxS   <= DP_OPERATION_ROT1;
         DP_DestinationxS <= DP_DESTINATION_TEMP1;
-      elsif (StateMachinexDV = STATE_ROUND_OP + 47) then
+      elsif (StateMachinexDV = STATE_ROUND_OP + 49) then
         DP_OpASelxS      <= DP_OPERAND_SEL_TEMP1;
         DP_OperationxS   <= DP_OPERATION_ROT16;
         DP_DestinationxS <= DP_DESTINATION_TEMP1;
-      elsif (StateMachinexDV = STATE_ROUND_OP + 48) then
+      elsif (StateMachinexDV = STATE_ROUND_OP + 50) then
         DP_OpASelxS      <= DP_OPERAND_SEL_STATE3;
         DP_OpBSelxS      <= DP_OPERAND_SEL_TEMP0;
         DP_OperationxS   <= DP_OPERATION_XOR;
         DP_DestinationxS <= DP_DESTINATION_STATE3;
-      elsif (StateMachinexDV = STATE_ROUND_OP + 49) then
+      elsif (StateMachinexDV = STATE_ROUND_OP + 51) then
         DP_OpASelxS      <= DP_OPERAND_SEL_STATE3;
         DP_OpBSelxS      <= DP_OPERAND_SEL_TEMP1;
         DP_OperationxS   <= DP_OPERATION_XOR;
         DP_DestinationxS <= DP_DESTINATION_STATE3;
-      elsif (StateMachinexDV = STATE_ROUND_OP + 50) then
+      elsif (StateMachinexDV = STATE_ROUND_OP + 52) then
         -- linear layer (State 4)
         DP_OpASelxS      <= DP_OPERAND_SEL_STATE4;
         DP_OperationxS   <= DP_OPERATION_ROT1;
         DP_DestinationxS <= DP_DESTINATION_TEMP0;
-      elsif (StateMachinexDV = STATE_ROUND_OP + 51) then
+      elsif (StateMachinexDV = STATE_ROUND_OP + 53) then
         DP_OpASelxS      <= DP_OPERAND_SEL_TEMP0;
         DP_OperationxS   <= DP_OPERATION_ROT8;
         DP_DestinationxS <= DP_DESTINATION_TEMP1;
-      elsif (StateMachinexDV = STATE_ROUND_OP + 52) then
+      elsif (StateMachinexDV = STATE_ROUND_OP + 54) then
         DP_OpASelxS      <= DP_OPERAND_SEL_TEMP1;
         DP_OperationxS   <= DP_OPERATION_ROT32;
         DP_DestinationxS <= DP_DESTINATION_TEMP1;
-      elsif (StateMachinexDV = STATE_ROUND_OP + 53) then
+      elsif (StateMachinexDV = STATE_ROUND_OP + 55) then
         DP_OpASelxS      <= DP_OPERAND_SEL_TEMP0;
         DP_OperationxS   <= DP_OPERATION_ROT2;
         DP_DestinationxS <= DP_DESTINATION_TEMP0;
-      elsif (StateMachinexDV = STATE_ROUND_OP + 54) then
+      elsif (StateMachinexDV = STATE_ROUND_OP + 56) then
         DP_OpASelxS      <= DP_OPERAND_SEL_TEMP0;
         DP_OperationxS   <= DP_OPERATION_ROT4;
         DP_DestinationxS <= DP_DESTINATION_TEMP0;
-      elsif (StateMachinexDV = STATE_ROUND_OP + 55) then
+      elsif (StateMachinexDV = STATE_ROUND_OP + 57) then
         DP_OpASelxS      <= DP_OPERAND_SEL_STATE4;
         DP_OpBSelxS      <= DP_OPERAND_SEL_TEMP0;
         DP_OperationxS   <= DP_OPERATION_XOR;
         DP_DestinationxS <= DP_DESTINATION_STATE4;
-      elsif (StateMachinexDV = STATE_ROUND_OP + 56) then
-        DP_OpASelxS      <= DP_OPERAND_SEL_STATE5;
+      elsif (StateMachinexDV = STATE_ROUND_OP + 58) then
+        DP_OpASelxS      <= DP_OPERAND_SEL_STATE4;
         DP_OpBSelxS      <= DP_OPERAND_SEL_TEMP1;
         DP_OperationxS   <= DP_OPERATION_XOR;
-        DP_DestinationxS <= DP_DESTINATION_STATE5;
+        DP_DestinationxS <= DP_DESTINATION_STATE4;
 
         if (CP_CommandxSP = CP_CMD_ENCRYPT) or
           (CP_CommandxSP = CP_CMD_DECRYPT) or
           (CP_CommandxSP = CP_CMD_ASSOCIATE) then
           if RoundCounterxDV = ROUNDS_B-1 then
-            CP_ReadyxS      <= '1';
+            CP_FinishedxS      <= '1';
             StateMachinexDN <= (others => '0');
             RoundCounterxDN <= (others => '0');
           else
@@ -851,6 +876,7 @@ begin  -- architecture structural
 
     OpAxDV := (others => '0');
     OpBxDV := (others => '0');
+    ResxDV := (others => '0');
 
     case DP_OpASelxS is
       when DP_OPERAND_SEL_STATE0      => OpAxDV := State0xDP;
@@ -859,7 +885,7 @@ begin  -- architecture structural
       when DP_OPERAND_SEL_STATE3      => OpAxDV := State3xDP;
       when DP_OPERAND_SEL_STATE4      => OpAxDV := State4xDP;
       when DP_OPERAND_SEL_KEY0        => OpAxDV := KeyxDP(63 downto 0);
-      when DP_OPERAND_SEL_KEY1        => OpAxDV := KeyxDP(128 downto 64);
+      when DP_OPERAND_SEL_KEY1        => OpAxDV := KeyxDP(127 downto 64);
       when DP_OPERAND_SEL_CONST_INIT  => OpAxDV := CONST_KEY_SIZE & CONST_ROUNDS_A & CONST_ROUNDS_B & ZEROS(64-3*8);
       when DP_OPERAND_SEL_CONST_ROUND => OpAxDV := ZEROS(64-8) & not RoundCounterxDP(3 downto 0) & RoundCounterxDP(3 downto 0);
       when DP_OPERAND_SEL_IODATA      => OpAxDV := IODataxDP;
@@ -875,7 +901,7 @@ begin  -- architecture structural
       when DP_OPERAND_SEL_STATE3      => OpBxDV := State3xDP;
       when DP_OPERAND_SEL_STATE4      => OpBxDV := State4xDP;
       when DP_OPERAND_SEL_KEY0        => OpBxDV := KeyxDP(63 downto 0);
-      when DP_OPERAND_SEL_KEY1        => OpBxDV := KeyxDP(128 downto 64);
+      when DP_OPERAND_SEL_KEY1        => OpBxDV := KeyxDP(127 downto 64);
       when DP_OPERAND_SEL_CONST_INIT  => OpBxDV := CONST_KEY_SIZE & CONST_ROUNDS_A & CONST_ROUNDS_B & ZEROS(64-3*8);
       when DP_OPERAND_SEL_CONST_ROUND => OpBxDV := ZEROS(64-8) & not RoundCounterxDP(3 downto 0) & RoundCounterxDP(3 downto 0);
       when DP_OPERAND_SEL_CONST_ONE   => OpBxDV := std_logic_vector(to_unsigned(1, STATE_WORD_SIZE));
@@ -902,23 +928,16 @@ begin  -- architecture structural
     DP_ALU_ResultxD <= ResxDV;
 
     case DP_DestinationxS is
-      when DP_DESTINATION_STATE0   => State0xDN            <= ResxDV;
-      when DP_DESTINATION_STATE1   => State1xDN            <= ResxDV;
-      when DP_DESTINATION_STATE2   => State2xDN            <= ResxDV;
-      when DP_DESTINATION_STATE3   => State3xDN            <= ResxDV;
-      when DP_DESTINATION_STATE4   => State4xDN            <= ResxDV;
-      when DP_DESTINATION_KEY_LOW  => KeyxDN(31 downto 0)  <= ResxDV;
-      when DP_DESTINATION_KEY_HIGH => KeyxDN(63 downto 32) <= ResxDV;
-      when DP_DESTINATION_IODATA   => IODataxDN            <= ResxDV;
-      when DP_DESTINATION_TEMP0    => Temp0xDN             <= ResxDV;
-      when DP_DESTINATION_TEMP1    => Temp1xDN             <= ResxDV;
-      when others                  => null;
+      when DP_DESTINATION_STATE0 => State0xDN <= ResxDV;
+      when DP_DESTINATION_STATE1 => State1xDN <= ResxDV;
+      when DP_DESTINATION_STATE2 => State2xDN <= ResxDV;
+      when DP_DESTINATION_STATE3 => State3xDN <= ResxDV;
+      when DP_DESTINATION_STATE4 => State4xDN <= ResxDV;
+      when DP_DESTINATION_IODATA => IODataxDN <= ResxDV;
+      when DP_DESTINATION_TEMP0  => Temp0xDN  <= ResxDV;
+      when DP_DESTINATION_TEMP1  => Temp1xDN  <= ResxDV;
+      when others                => null;
     end case;
-
-    ---------------------------------------------------------------------------
-    -- part of bus interface
-    ---------------------------------------------------------------------------
-
 
   end process DatapathProc;
   

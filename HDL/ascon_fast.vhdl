@@ -1,22 +1,30 @@
 -------------------------------------------------------------------------------
 -- Title      : A naturally fast implementation of Ascon
--- Project    : 
+-- Project    : Ascon
 -------------------------------------------------------------------------------
--- File       : ascon_ref.vhdl
+-- File       : ascon_fast.vhdl
 -- Author     : Erich Wenger  <erich.wenger@iaik.tugraz.at>
--- Company    : 
+-- Company    : Graz University of Technology
 -- Created    : 2014-03-21
--- Last update: 2014-05-23
--- Platform   : 
+-- Last update: 2014-03-24
+-- Platform   : ASIC design
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: In a 90nm UMC technology, this design is 8708 GE large and
--- needs 7/8=0.875 cycles to encrypt a byte (assuming a large message).
+--   Copyright 2014 Graz University of Technology
+--
+--   Licensed under the Apache License, Version 2.0 (the "License");
+--   you may not use this file except in compliance with the License.
+--   You may obtain a copy of the License at
+--
+--       http://www.apache.org/licenses/LICENSE-2.0
+--
+--   Unless required by applicable law or agreed to in writing, software
+--   distributed under the License is distributed on an "AS IS" BASIS,
+--   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+--   See the License for the specific language governing permissions and
+--   limitations under the License.
 -------------------------------------------------------------------------------
--- Copyright (c) 2014
--- This work is licensed under the Creative Commons
--- Attribution-NonCommercial-ShareAlike 4.0 International License.
--- To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-sa/4.0/.
+-- TODO: add cheap next state logic to actually need no cycles for interface ;-)
 -------------------------------------------------------------------------------
 -- Revisions  :
 -- Date        Version  Author           Description
