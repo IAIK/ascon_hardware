@@ -31,7 +31,7 @@
 
 \usetikzlibrary{patterns}
  
-\title{{\scshape Ascon}-128 Hardware Design Document}
+\title{{\scshape Ascon}-128 Hardware Design Document \\ v0.8} %{\rm v\oldstylenums{0.8}}}
 
 \author{Erich Wenger \and Hannes Gro{\ss}}
 \institute{Graz University of Technology\\
@@ -75,7 +75,7 @@ Inffeldgasse 16a, 8010 Graz, Austria\\
 
 \section{Introduction}
 
-This document defines the interface and discusses design decisions for our implementations of the authenticated encryption algorithm \textsc{Ascon}-128.  The \textsc{Ascon} family was designed by Dobraunig, Eichlseder, Mendel and Schl{\"a}ffer~\cite{} and submitted as a candidate to the CAESAR competition for authenticated encryption designs.
+This document defines the interface and discusses design decisions for our implementations of the authenticated encryption algorithm \textsc{Ascon}-128.  The \textsc{Ascon} family was designed by Dobraunig, Eichlseder, Mendel and Schl{\"a}ffer~\cite{dobraunig2014ascon} and submitted as a candidate to the CAESAR competition for authenticated encryption designs.
 Our goal was to explore the design space of hardware implementations of \textsc{Ascon}-128, and we provide both low-area and high-speed implementations.  Within this paper, we document the common hardware bus interface, as well as the memory layout of all our \textsc{Ascon}-128 implementations.  In Section~\ref{sec:results}, we check the implementations for their hardware characteristics. 
 
 \section{Assumptions}
@@ -283,6 +283,8 @@ conditions: 0.9\,V power supply and a temperature of 125\celsius.
 
 
 % \section*{Acknowledgments}
+
+\vspace*{-.5cm} % TODO remove asap -- silly hack
 
 %--- Bibliography
 \bibliographystyle{abbrv}
