@@ -1,0 +1,111 @@
+\documentclass[runningheads]{llncs}
+
+\newif\ifanonymous\anonymoustrue
+% Uncomment the next line to get a non-anonymous version
+\anonymoustrue
+
+\usepackage{url}
+\usepackage{graphicx}
+\usepackage{algorithm,algpseudocode}
+\usepackage{eqparbox} %
+\usepackage{listings}
+\usepackage{multicol} %
+\usepackage{multirow}
+\usepackage[usenames,dvipsnames]{xcolor} %
+\usepackage{amsmath,amssymb}
+\usepackage{array} %
+\usepackage{tikz} %
+\usepackage{pgfplots}
+\usepackage{relsize} %
+%\usepackage{footnote}
+%\makesavenoteenv{tabular}
+\usepackage{color, colortbl} %
+\usepackage{textcomp} 
+%\usepackage{times}
+
+% \usepackage{draftwatermark}
+% \SetWatermarkText{Draft \today -- do not distribute!}
+
+%\linespread{0.98}
+
+% \usepackage[a4paper,hmargin=1.6in,vmargin=1.35in]{geometry}
+
+% to avoid over-full lines
+\tolerance=2000
+
+\usetikzlibrary{patterns}
+ 
+\title{Ascon HW Design Document}
+%\title{Practically Breaking ECC2K-112: \\ New Discrete Logarithm Records}
+%\title{Practically Breaking ECC2K-112 without Implementation Attacks}
+%\title{Practically Breaking ECC2K-112: \\ Welcome to the Dark Side}
+%\subtitle{No Implementation Attacks Involved!}
+%\titlerunning{8/16/32 Shades of Elliptic Curve Cryptography on Embedded Processors}
+
+\ifanonymous
+  \author{}
+  \institute{}
+  \pagestyle{plain}
+  \let\maketitleorig\maketitle
+  \renewcommand{\maketitle}{\maketitleorig\thispagestyle{plain}}
+\fi
+
+% \author{Erich Wenger \and Paul Wolfger}
+
+%--- Macros
+\newcommand{\todo}[1]%
+  {\marginpar{\baselineskip0ex\rule{2,5cm}{0.5pt}\\[0ex]{\tiny\textsf{#1}}}}
+\newcommand{\eg}{e.g.}
+\newcommand{\ie}{\textsl{i.e.}}
+\newcommand{\etal}{\textsl{et al.}}
+\newcommand{\jaavr}{OURAVR}
+\DeclareMathOperator{\yrecovery}{\texttt{y-recovery}}
+
+\definecolor{ColorArea}{rgb}{1,1,0.8}
+\newcolumntype{A}{>{\columncolor{ColorArea}}r}
+\definecolor{ColorRuntime}{rgb}{0.9,0.9,1}
+\newcolumntype{R}{>{\columncolor{ColorRuntime}}r}
+\definecolor{ColorPower}{rgb}{1,0.9,0.9}
+\newcolumntype{P}{>{\columncolor{ColorPower}}r}
+\definecolor{ColorEnergy}{rgb}{0.9,1,0.9}
+\newcolumntype{E}{>{\columncolor{ColorEnergy}}r}
+
+\algrenewcommand{\algorithmicrequire}{\textbf{Input:}}
+\algrenewcommand{\algorithmicensure}{\textbf{Output:}}
+\algrenewcommand{\algorithmiccomment}[1]{\hskip0.5em$\triangleright$ #1}
+\algnewcommand{\Lineif}[2]{%
+    %\STATE\algorithmicif\ {#1}\ \algorithmicthen\ {#2} \algorithmicend\ \algorithmicif%
+    \State\algorithmicif\ {#1}\ \algorithmicthen\ {#2}
+}
+
+
+\begin{document}
+
+\maketitle
+
+\section{Protocol Phases}
+
+\begin{description}
+\item[Initialization] Write key, Write nonce, Start (do $p^a$, add key)
+\item[Process associated data] Write plaintext (do $p^b$)
+\item[Finalize associated data] do xor constant
+\item[Encrypt] Write plaintext, Read ciphertext (do $p^b$) 
+\item[Decrypt] Write ciphertext, read plaintext (do $p^b$)
+\item[Finalize] (add key, do $p^a$, add key) Read tag
+\end{description}
+
+
+
+
+
+% \section*{Acknowledgments}
+
+%--- Bibliography
+\bibliographystyle{abbrv}
+\bibliography{bibliography} 
+
+\appendix
+%\newpage
+
+
+\end{document}
