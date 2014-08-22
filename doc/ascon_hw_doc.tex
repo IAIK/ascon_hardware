@@ -31,7 +31,7 @@
 
 \usetikzlibrary{patterns}
  
-\title{{\scshape Ascon}-128 Hardware Design Document \\ v0.8} %{\rm v\oldstylenums{0.8}}}
+\title{{\scshape Ascon}-128 Hardware Design Document \\ v0.9} %{\rm v\oldstylenums{0.8}}}
 
 \author{Erich Wenger \and Hannes Gro{\ss}}
 \institute{Graz University of Technology\\
@@ -158,6 +158,7 @@ Word Address & R/W & Functionality \\ \midrule %\hline
 \texttt{0000} & read & \texttt{0xdeadbeef} to check basic connectivity \\
 \texttt{0001} & read & Status Register: reads 1 if busy, otherwise 0 \\
 \texttt{0002} & write & \specialcell[t]{Control Register:\\- bit 0: Initialize\\- bit 1: Associate\\- bit 2: Encrypt\\- bit 3: Decrypt\\- bit 4: Final Encrypt\\- bit 5: Final Decrypt\\- bit 6: Final Associate} \\
+\texttt{0003} & write & \specialcell[t]{Scheduled Status Register:\\reads 1 if operation scheduled, otherwise 0 \\(only with \textsc{Ascon}-fast)} \\
 \texttt{0004-0007} & write & 128-bit key, little endian \\
 \texttt{0008-000B} & write & 128-bit nonce, little endian \\
 \texttt{000C-000D} & write & 64-bit data to encrypt/decrypt/associate, little endian \\
@@ -176,7 +177,7 @@ typedef struct ASCON128_INTERFACE_ {
     uint32_t unique_value;
     uint32_t status;
     uint32_t control;
-    uint32_t filler1;
+    uint32_t scheduled_status;
     uint32_t key[4];
     uint32_t nonce[4];
     uint32_t data[2];
@@ -196,9 +197,13 @@ volatile ASCON128_INTERFACE* interface = (volatile ASCON128_INTERFACE*) 0x400000
 \end{lstlisting}
 
 \begin{lstlisting}[float=htb,language=c,caption={Simple way of using the hardware to authenticate and encrypt data.},label=lst:c_auth_enc,basicstyle=\footnotesize\ttfamily]
-int crypto_aead_encrypt(  uint8_t *c, uint64_t *clen,
-  const uint8_t *m, uint64_t mlen,  const uint8_t *ad, uint64_t adlen,
-  const uint8_t *nsec,  const uint8_t *npub,  const uint8_t *k) {
+int crypto_aead_encrypt(
+  uint8_t *c, uint64_t *clen,
+  const uint8_t *m, uint64_t mlen,
+  const uint8_t *ad, uint64_t adlen,
+  const uint8_t *nsec,
+  const uint8_t *npub,
+  const uint8_t *k) {
     *clen = mlen + 16;
     interface->key[0] = CAST_B_I(k+0);
     interface->key[1] = CAST_B_I(k+4);
@@ -209,14 +214,14 @@ int crypto_aead_encrypt(  uint8_t *c, uint64_t *clen,
     interface->nonce[2] = CAST_B_I(npub+8);
     interface->nonce[3] = CAST_B_I(npub+12);
     interface->control = CTRL_INIT;
-    while(interface->status != 1);
+    while(interface->status != 0);
 
     // TODO: specially handle padding and adlen % 8 != 0
     while(adlen >= 8) {
         interface->data[0] = CAST_B_I(ad); ad += 4;
         interface->data[1] = CAST_B_I(ad); ad += 4; adlen -= 8;
         interface->control = CTRL_ASSOCIATE;
-        while(interface->status != 1);
+        while(interface->status != 0);
     }
     interface->control = CTRL_ASSOCIATE_FINAL; // single cycle
 
@@ -225,14 +230,14 @@ int crypto_aead_encrypt(  uint8_t *c, uint64_t *clen,
         interface->data[0] = CAST_B_I(m); m+=4;
         interface->data[1] = CAST_B_I(m); m+=4;
         interface->control = CTRL_ENCRYPT;
-        while(interface->status != 1);
+        while(interface->status != 0);
         SET_I_B(c, interface->data[0]); c+=4;
         SET_I_B(c, interface->data[1]); c+=4;
     }
     interface->data[0] = CAST_B_I(m); m+=4;
     interface->data[1] = CAST_B_I(m); m+=4;
     interface->control = CTRL_ENCRYPT_FINAL;
-    while(interface->status != 1);
+    while(interface->status != 0);
     SET_I_B(c, interface->data[0]); c+=4;
     SET_I_B(c, interface->data[1]); c+=4;
     SET_I_B(c, interface->tag[0]); c+=4;
@@ -271,7 +276,7 @@ conditions: 0.9\,V power supply and a temperature of 125\celsius.
 \begin{tabular}{l@{\hskip 12pt}r@{\hskip 12pt}r@{\hskip 12pt}r} \toprule
   Design & \textsc{Ascon}-fast & \textsc{Ascon}-small-64bit & \textsc{Ascon}-xlow-area \\
   \midrule
-  Area                             & 8,708\,GE            & 6,110\,GE               & 3,994\,GE                 \\
+  Area                             & 8,895\,GE            & 6,110\,GE               & 3,994\,GE                 \\
   Cycles per round                 & 1                    & 59                      & 512                       \\
   Cycles per block plus interface  & $1 \times 6 + 0 = 6$ & $59 \times 6 + 6 = 360$ & $512 \times 6 + 6 = 3078$ \\
   Cycles per byte                  & 0.75                 & 45                      & 384.75                    \\
