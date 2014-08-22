@@ -6,7 +6,7 @@
 -- Author     : Erich Wenger  <erich.wenger@iaik.tugraz.at>
 -- Company    : Graz University of Technology
 -- Created    : 2014-03-21
--- Last update: 2014-03-24
+-- Last update: 2014-08-22
 -- Platform   : ASIC design
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -23,8 +23,6 @@
 -- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
--------------------------------------------------------------------------------
--- TODO: add cheap next state logic to actually need no cycles for interface ;-)
 -------------------------------------------------------------------------------
 -- Revisions  :
 -- Date        Version  Author           Description
@@ -87,6 +85,9 @@ architecture structural of ascon is
   signal CP_FinalEncryptxSP, CP_FinalEncryptxSN               : std_logic;
   signal CP_FinalDecryptxSP, CP_FinalDecryptxSN               : std_logic;
   signal CP_DonexS                                            : std_logic;
+  signal CP_ScheduledAssociatexSP, CP_ScheduledAssociatexSN   : std_logic;
+  signal CP_ScheduledEncryptxSP, CP_ScheduledEncryptxSN       : std_logic;
+  signal CP_ScheduledDecryptxSP, CP_ScheduledDecryptxSN       : std_logic;
 
   signal DP_InitxS      : std_logic;
   signal DP_RoundxS     : std_logic;
@@ -126,7 +127,7 @@ begin  -- architecture structural
   -- outputs: *xDP signals
   RegisterProc : process (ClkxCI, RstxRBI) is
   begin  -- process RegisterProc
-    if RstxRBI = '0' then               -- asynchronous reset (active low)
+    if RstxRBI = '0' then                     -- asynchronous reset (active low)
       KeyxDP                    <= (others => '0');
       IODataxDP                 <= (others => '0');
       State0xDP                 <= (others => '0');
@@ -142,6 +143,9 @@ begin  -- architecture structural
       CP_FinalAssociatedDataxSP <= '0';
       CP_FinalEncryptxSP        <= '0';
       CP_FinalDecryptxSP        <= '0';
+      CP_ScheduledAssociatexSP  <= '0';
+      CP_ScheduledEncryptxSP    <= '0';
+      CP_ScheduledDecryptxSP    <= '0';
     elsif ClkxCI'event and ClkxCI = '1' then  -- rising clock edge
       KeyxDP                    <= KeyxDN;
       IODataxDP                 <= IODataxDN;
@@ -158,17 +162,16 @@ begin  -- architecture structural
       CP_FinalAssociatedDataxSP <= CP_FinalAssociatedDataxSN;
       CP_FinalEncryptxSP        <= CP_FinalEncryptxSN;
       CP_FinalDecryptxSP        <= CP_FinalDecryptxSN;
+      CP_ScheduledAssociatexSP  <= CP_ScheduledAssociatexSN;
+      CP_ScheduledEncryptxSP    <= CP_ScheduledEncryptxSN;
+      CP_ScheduledDecryptxSP    <= CP_ScheduledDecryptxSN;
     end if;
   end process RegisterProc;
 
 
   -- purpose: Glue the internal registers with the bus
   -- type   : combinational
-  DataBusLogicProc : process (AddressxDI, CP_AssociatexSP, CP_DecryptxSP,
-                              CP_DonexS, CP_EncryptxSP, CP_FinalDecryptxSP,
-                              CP_FinalEncryptxSP, CP_InitxSP, CSxSI,
-                              DataWritexDI, IODataxDP, KeyxDP, State3xDP,
-                              State4xDP, StatexDP, WExSI) is
+  DataBusLogicProc : process (AddressxDI, CP_AssociatexSP, CP_DecryptxSP, CP_DonexS, CP_EncryptxSP, CP_FinalDecryptxSP, CP_FinalEncryptxSP, CP_InitxSP, CP_ScheduledAssociatexSP, CP_ScheduledDecryptxSP, CP_ScheduledEncryptxSP, CSxSI, DataWritexDI, IODataxDP, KeyxDP, State3xDP, State4xDP, WExSI) is
     variable AddressxDV : integer;
     variable index      : integer;
   begin  -- process DataBusLogicProc
@@ -181,20 +184,26 @@ begin  -- architecture structural
     DP_WriteNoncexS  <= '0';
     DP_WriteIODataxS <= '0';
 
-    CP_InitxSN         <= CP_InitxSP;
-    CP_AssociatexSN    <= CP_AssociatexSP;
-    CP_EncryptxSN      <= CP_EncryptxSP;
-    CP_DecryptxSN      <= CP_DecryptxSP;
-    CP_FinalEncryptxSN <= CP_FinalEncryptxSP;
-    CP_FinalDecryptxSN <= CP_FinalDecryptxSP;
+    CP_InitxSN                <= CP_InitxSP;
+    CP_AssociatexSN           <= CP_AssociatexSP;
+    CP_EncryptxSN             <= CP_EncryptxSP;
+    CP_DecryptxSN             <= CP_DecryptxSP;
+    CP_FinalEncryptxSN        <= CP_FinalEncryptxSP;
+    CP_FinalDecryptxSN        <= CP_FinalDecryptxSP;
+    CP_ScheduledAssociatexSN <= CP_ScheduledAssociatexSP;
+    CP_ScheduledEncryptxSN   <= CP_ScheduledEncryptxSP;
+    CP_ScheduledDecryptxSN   <= CP_ScheduledDecryptxSP;
 
     if CP_DonexS = '1' then
-      CP_InitxSN         <= '0';
-      CP_AssociatexSN    <= '0';
-      CP_EncryptxSN      <= '0';
-      CP_DecryptxSN      <= '0';
-      CP_FinalEncryptxSN <= '0';
-      CP_FinalDecryptxSN <= '0';
+      CP_InitxSN                <= '0';
+      CP_AssociatexSN           <= CP_ScheduledAssociatexSP;
+      CP_EncryptxSN             <= CP_ScheduledEncryptxSP;
+      CP_DecryptxSN             <= CP_ScheduledDecryptxSP;
+      CP_FinalEncryptxSN        <= '0';
+      CP_FinalDecryptxSN        <= '0';
+      CP_ScheduledAssociatexSN <= '0';
+      CP_ScheduledEncryptxSN   <= '0';
+      CP_ScheduledDecryptxSN   <= '0';
     end if;
 
     -- TODO: only designed for DATA_BUS_WIDTH=32
@@ -204,11 +213,23 @@ begin  -- architecture structural
         if AddressxDV = 2 then
           -- command register
           CP_InitxSN         <= DataWritexDI(0);
-          CP_AssociatexSN    <= DataWritexDI(1);
-          CP_EncryptxSN      <= DataWritexDI(2);
-          CP_DecryptxSN      <= DataWritexDI(3);
           CP_FinalEncryptxSN <= DataWritexDI(4);
           CP_FinalDecryptxSN <= DataWritexDI(5);
+          if CP_AssociatexSP = '1' then
+            CP_ScheduledAssociatexSN <= DataWritexDI(1);
+          else
+            CP_AssociatexSN <= DataWritexDI(1);
+          end if;
+          if CP_EncryptxSP = '1' then
+            CP_ScheduledEncryptxSN <= DataWritexDI(2);
+          else
+            CP_EncryptxSN <= DataWritexDI(2);
+          end if;
+          if CP_DecryptxSP = '1' then
+            CP_ScheduledDecryptxSN <= DataWritexDI(3);
+          else
+            CP_DecryptxSN <= DataWritexDI(3);
+          end if;
         elsif (AddressxDV >= 4) and (AddressxDV < 8) then
           -- write the key
           index                                                          := to_integer(unsigned(AddressxDI(1 downto 0)));
@@ -219,6 +240,12 @@ begin  -- architecture structural
         elsif (AddressxDV >= 12) and (AddressxDV < 14) then
           -- write the data to de/encrypt and associated data
           DP_WriteIODataxS <= '1';
+          if (AddressxDV = 13) and ((CP_AssociatexSP = '1') or (CP_EncryptxSP = '1') or (CP_DecryptxSP = '1')) then
+            -- automatically enable association/encryption/decryption of next block as the new data is already ready
+            CP_ScheduledAssociatexSN <= CP_AssociatexSP;
+            CP_ScheduledEncryptxSN <= CP_EncryptxSP;
+            CP_ScheduledDecryptxSN <= CP_DecryptxSP;
+          end if;
         end if;
       else
         -- asynchronous read
@@ -228,6 +255,9 @@ begin  -- architecture structural
           -- status register
           -- returns 1 if busy
           DataReadxDO(0) <= CP_InitxSP or CP_AssociatexSP or CP_EncryptxSP or CP_DecryptxSP or CP_FinalEncryptxSP or CP_FinalDecryptxSP;
+        elsif AddressxDV = 3 then
+          -- returns 1 if something is scheduled
+          DataReadxDO(0) <= CP_ScheduledAssociatexSP or CP_ScheduledEncryptxSP or CP_ScheduledDecryptxSP;
         elsif (AddressxDV >= 12) and (AddressxDV < 14) then
           -- read the de/encrypted data and associated data
           index       := to_integer(unsigned(AddressxDI(0 downto 0)));
@@ -248,8 +278,8 @@ begin  -- architecture structural
     end if;
   end process DataBusLogicProc;
 
-  -- purpose: Controlpath of Ascon
-  -- type   : combinational
+-- purpose: Controlpath of Ascon
+-- type   : combinational
   ControlProc : process (CP_AssociatexSP, CP_DecryptxSP, CP_EncryptxSP,
                          CP_FinalAssociatedDataxSP, CP_FinalDecryptxSP,
                          CP_FinalEncryptxSP, CP_InitxSP, ControlStatexDP) is
@@ -306,8 +336,8 @@ begin  -- architecture structural
     end if;
   end process ControlProc;
 
-  -- purpose: Datapath of Ascon
-  -- type   : combinational
+-- purpose: Datapath of Ascon
+-- type   : combinational
   DatapathProc : process (AddressxDI, ControlStatexDP, DP_AssociatexS,
                           DP_DecryptxS, DP_EncryptxS, DP_InitxS, DP_RoundxS,
                           DP_WriteIODataxS, DP_WriteNoncexS, DP_XorKeyZxS,
@@ -443,6 +473,6 @@ begin  -- architecture structural
     end if;
 
   end process DatapathProc;
-  
+
 
 end architecture structural;
