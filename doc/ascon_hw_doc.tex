@@ -260,7 +260,8 @@ int crypto_aead_encrypt(
 
 \subsection{\textsc{Ascon}-xlow-area}
 
-TBD: Hannes Gro{\ss}
+\textsc{Ascon}-xlow-area is an uncompromisingly trimmed implementation that strictly avoids redundancies of functional units in the data path, e.g., only a single 5-bit S-box instance is implemented. The main part of the design---the so-called state---is therefore organized as five 64-bit linear feedback shift registers (LFSR) that are shifted through the functional units. The results are then either directly fed back into the state registers or temporarily stored into another LFSR. In order to keep the control path as simple as possible, the whole state encoding is implicitly done by a 13-bit counter. The counter is thus subdivided into three parts counting the number of processed rounds and the number of processed bits in each iteration. Furthermore, the counter selects the function that is applied on the state in the current iteration. The rest of the control path is formed by only a few gates which are required to handle functionality that is not applied in each round.
+
 
 \section{Results} \label{sec:results}
 
@@ -292,6 +293,7 @@ conditions: 0.9\,V power supply and a temperature of 125\celsius.
 \vspace*{-.5cm} % TODO remove asap -- silly hack
 
 %--- Bibliography
+\newpage
 \bibliographystyle{abbrv}
 \bibliography{bibliography} 
 
