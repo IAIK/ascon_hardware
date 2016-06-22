@@ -1,0 +1,8 @@
+AEAD_pkg.vhd
+CipherCore.vhd
+fwft_fifo.vhd
+PreProcessor.vhd
+PostProcessor.vhd
+AEAD.vhd
+AEAD_Arch.vhd
+AEAD_Wrapper.vhd

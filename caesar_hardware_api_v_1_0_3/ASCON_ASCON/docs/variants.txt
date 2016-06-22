@@ -1,0 +1,51 @@
+PLEASE NOTE: We consider the variants marked with "*" (one unroled round) to be 
+the best compromise of area vs throughput and suggest this variants to be the
+two primary variants.
+--------------------------------------------------------------------------------
+Ascon-128
+    Reference software:
+        ascon128v11
+
+    Architecture description:
+        Generic number of (unroled) rounds Ascon implementation
+
+    Key setup time:
+        128/G_KEY_SIZE
+    Execution time of authenticated encryption:
+        (12+Na*6+(Nm-1)*6+12)/UNROLED_ROUNDS
+    Execution time of authenticated decryption:
+        (12+Na*6+(Nc-1)*6+12)/UNROLED_ROUNDS
+
+    Non-default generic settings:
+        G_DBLK_SIZE    = 64
+        G_ABLK_SIZE    = 64
+
+    CipherCore generics:
+        RATE           = 64
+    	UNROLED_ROUNDS = 1*|2|3|6
+    	ROUNDS_A       = 12
+    	ROUNDS_B       = 6
+--------------------------------------------------------------------------------
+Ascon-128a
+    Reference software:
+        ascon128av11
+
+    Architecture description:
+        Generic number of (unroled) rounds Ascon implementation
+
+    Key setup time:
+        128/G_KEY_SIZE
+    Execution time of authenticated encryption:
+        (12+Na*8+(Nm-1)*8+12)/UNROLED_ROUNDS
+    Execution time of authenticated decryption:
+        (12+Na*8+(Nc-1)*8+12)/UNROLED_ROUNDS
+
+    Non-default generic settings:
+        G_DBLK_SIZE = 128
+        G_ABLK_SIZE = 128
+
+    CipherCore generics:
+        RATE           = 128
+    	UNROLED_ROUNDS = 1*|2|4
+    	ROUNDS_A       = 12
+    	ROUNDS_B       = 8
